@@ -1,0 +1,40 @@
+@startuml
+title Puzzle: Button Click Flow (Simplified)
+
+actor User
+participant JButton as Btn
+participant ActionListener as Listener
+participant Grid
+participant MainFrame
+participant JDialog as Win
+
+User -> Btn : click(tile at x,y)
+Btn -> Listener : actionPerformed(e)
+Listener -> Grid : move(x, y)
+
+activate Grid
+Grid -> Grid : isNeighbor(x, y)?
+alt valid move
+    Grid -> Grid : swap tiles + update coords
+    Grid --> Listener : true
+    Listener -> MainFrame : refresh()
+
+    activate MainFrame
+    MainFrame -> Grid : getArea()
+    MainFrame -> MainFrame : update all button icons
+    MainFrame -> Grid : isFinal()
+
+    alt victory!
+        Grid --> MainFrame : true
+        MainFrame -> Win : show victory dialog
+        Win --> User : "Победа!"
+    else continue
+        Grid --> MainFrame : false
+    end
+    deactivate MainFrame
+else invalid move
+    Grid --> Listener : false
+end
+deactivate Grid
+
+@enduml

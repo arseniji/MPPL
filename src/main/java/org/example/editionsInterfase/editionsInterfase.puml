@@ -1,0 +1,77 @@
+@startuml
+interface PrintEdition{
+    + getPrintingNum(): Integer
+    + getNumPages(): Integer
+    + getLanguage(): String
+    + setPrintingNum(printingNum: Integer): void
+    + setLanguage(language: String): void
+    + setNumPages(numPages: Integer): void
+    + toString(): String
+    + equals(o: Object ): boolean
+    + hashCode(): int
+}
+
+interface Calculatable{
+    + calculateCost(additionalParams: Object): Double
+}
+
+
+class BasePrintEdition{
+    - printingNum: Integer
+    - language: String
+    - numPages: Integer
+    + PrintEdition(printingNum: Integer, language: String, numPages: Integer)
+    + {abstract} calculateCost(additionalParams: Object) : Double
+    +  toString() : String
+    +  equals(o: Object) : boolean
+    +  hashCode() : int
+    +  getPrintingNum() : Integer
+    +  getNumPages() : Integer
+    +  getLanguage() : String
+    +  setPrintingNum(printingNum: Integer) : void
+    +  setLanguage(language: String) : void
+    +  setNumPages(numPages: Integer) : void
+}
+class Newspaper{
+    - type: String
+    + Newspaper(printingNum: Integer, language: String, numPages: Integer, type: String)
+    + calculateCost(additionalParams: Object): Double
+    + toString(): String
+    + equals(o: Object): boolean
+    + hashCode(): int
+    + getType(): String
+    + setType(type: String): void
+}
+class Magazine{
+    - annualEditions: Integer
+    + Magazine(printingNum: Integer, language: String, numPages: Integer, annualEditions: Integer)
+    + calculateCost(additionalParams: Object): Double
+    + toString(): String
+    + equals(o: Object): boolean
+    + hashCode(): int
+    + getAnnualEditions(): Integer
+    + setAnnualEditions(annualEditions: Integer): void
+}
+class Book{
+    - author: String
+    + Book(printingNum: Integer, language: String, numPages: Integer, author: String)
+    + calculateCost(additionalParams: Object): Double
+    + toString(): String
+    + equals(o: Object): boolean
+    + hashCode(): int
+    + getAuthor(): String
+    + setAuthor(author: String): void
+}
+
+Newspaper --|> BasePrintEdition : extends
+Book --|> BasePrintEdition : extends
+Magazine --|> BasePrintEdition : extends
+
+Newspaper ..|> Calculatable : implements
+Book ..|> Calculatable : implements
+Magazine ..|> Calculatable : implements
+
+BasePrintEdition ..|> Calculatable : implements
+BasePrintEdition ..|> PrintEdition : implements
+
+@enduml

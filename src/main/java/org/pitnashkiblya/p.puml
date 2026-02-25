@@ -1,0 +1,55 @@
+@startuml
+class Tag{
+    - x: int
+    - y: int
+    - correctX: int
+    - correctY: int
+    + Tag(x: int, y: int, content: BufferedImage)
+    + getContent(): BufferedImage
+    + getX(): int
+    + getY(): int
+    + setCord(x: int,y: int): void
+    + getCorrectX(): int
+    + getCorrectY(): int
+}
+class Grid{
+    - size: int
+    - area: Tag[][]
+    - emptyX: int
+    - emptyY: int
+    - random: Random
+    + Grid(size: int)
+    - init(): void
+    + getArea(): Tag[][]
+    + move(x: int,y: int): boolean
+    - isNeighbor(x: int,y: int): boolean
+    - shuffle(): void
+    + isFinal(): boolean
+}
+class ImageProcessor{
+    {static} - raw: BufferedImage
+    {static} - tiles: BufferedImage[][]
+    {static} - chooser: JFileChooser
+    {static} - load(): void
+    {static} - preset(): void
+    {static} - cropToSquare(): void
+    {static} - cutToTiles(num: int): void
+    {static} - resize(size: int): void
+    {static} + process(): BufferedImage[][]
+    {static} + getBase(): BufferedImage[][]
+}
+
+class MainFrame{
+    - size: int
+    - buttons: JButton[][]
+    - grid: Grid
+    - panel: JPanel
+    + init(): JPanel
+    - refresh(): void
+    - doFinal(): void
+}
+
+Grid *-- Tag
+Grid ..> ImageProcessor
+MainFrame *-- Grid
+@enduml
