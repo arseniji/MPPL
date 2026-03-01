@@ -1,8 +1,10 @@
 package org.lr5;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class Main {
 
@@ -12,31 +14,31 @@ public class Main {
         // 1. Инициализация процессора
         CompositionListProcessor processor = new CompositionListProcessor();
 
-        // 2. Генерация данных (Куча объектов)
+        // 2. Генерация данных
         System.out.println("⏳ Генерация библиотеки композиций...");
         generateData(processor);
         System.out.println("✅ Добавлено композиций: " + processor.getSize() + "\n");
 
-        // 3. Тестирование Группировки (Group By)
+        // 3. Тестирование Группировки
         testGrouping(processor);
 
-        // 4. Тестирование Сортировки (Sorting)
+        // 4. Тестирование Сортировки
         testSorting(processor);
 
-        // 5. Тестирование Фильтрации (Filtering)
+        // 5. Тестирование Фильтрации
         testFiltering(processor);
 
-        // 6. Тестирование Сложных выборок (Complex Queries)
+        // 6. Тестирование Сложных выборок
         testComplexQueries(processor);
+
+        // 7. 🔥 НОВОЕ: Тестирование параметризации (Predicate & Comparator)
+        testParameterization(processor);
 
         printFooter("🏁 ТЕСТИРОВАНИЕ ЗАВЕРШЕНО УСПЕШНО 🏁");
     }
 
-    // -----------------------------------------------------------------------
-    // Метод генерации тестовых данных
-    // -----------------------------------------------------------------------
+    // ... [метод generateData оставляем без изменений] ...
     private static void generateData(CompositionListProcessor processor) {
-        // Авторы
         Author queen = new Author.AuthorBuilder("Queen", true)
                 .setCountry("UK")
                 .setDate(LocalDate.of(1970, 1, 1))
@@ -70,7 +72,6 @@ public class Main {
                 .addMember("Viktor Tsoi")
                 .build();
 
-        // Композиции (Разные жанры и даты для проверки сортировки)
         processor.add(new Composition("Bohemian Rhapsody", queen, Genres.rock, LocalDate.of(1975, 10, 31)));
         processor.add(new Composition("We Will Rock You", queen, Genres.rock, LocalDate.of(1977, 10, 7)));
         processor.add(new Composition("Another One Bites the Dust", queen, Genres.rock, LocalDate.of(1980, 8, 22)));
@@ -93,39 +94,23 @@ public class Main {
         processor.add(new Composition("Gruppa Krovi", tsoi, Genres.rock, LocalDate.of(1988, 1, 1)));
     }
 
-    // -----------------------------------------------------------------------
-    // Тесты Группировки
-    // -----------------------------------------------------------------------
+    // ... [методы testGrouping, testSorting, testFiltering, testComplexQueries оставляем без изменений] ...
     private static void testGrouping(CompositionListProcessor processor) {
         printSection("📂 ТЕСТИРОВАНИЕ ГРУППИРОВКИ ПО ЖАНРАМ");
-
-        // Stream версия
         Map<Genres, List<Composition>> streamMap = processor.streamGroupByGenre();
         printMap("Stream API Grouping", streamMap);
-
-        // Legacy версия (для сверки)
         Map<Genres, List<Composition>> legacyMap = processor.legacyGroupByGenre();
-
         boolean match = streamMap.size() == legacyMap.size();
         printVerification("Сравнение Legacy vs Stream (размер карт)", match);
         System.out.println();
     }
 
-    // -----------------------------------------------------------------------
-    // Тесты Сортировки
-    // -----------------------------------------------------------------------
     private static void testSorting(CompositionListProcessor processor) {
         printSection("📈 ТЕСТИРОВАНИЕ СОРТИРОВКИ");
-
-        // Сортировка по дате (Stream)
         List<Composition> sortedByDate = processor.streamSortByDate();
         printList("Сортировка по дате выпуска (Stream)", sortedByDate);
-
-        // Сортировка по автору (Stream)
         List<Composition> sortedByAuthor = processor.streamSortByAuthor();
         printList("Сортировка по имени автора (Stream)", sortedByAuthor);
-
-        // Сверка Legacy сортировки
         List<Composition> legacySorted = processor.legacyFinalSortByDate();
         boolean sortMatch = sortedByDate.size() == legacySorted.size()
                 && sortedByDate.get(0).getReleaseDate().equals(legacySorted.get(0).getReleaseDate());
@@ -133,49 +118,146 @@ public class Main {
         System.out.println();
     }
 
-    // -----------------------------------------------------------------------
-    // Тесты Фильтрации
-    // -----------------------------------------------------------------------
     private static void testFiltering(CompositionListProcessor processor) {
         printSection("🔍 ТЕСТИРОВАНИЕ ФИЛЬТРАЦИИ");
-
         Genres targetGenre = Genres.rock;
-
-        // Получение по жанру
         List<Composition> rockStream = processor.streamGetByGenre(targetGenre);
         List<Composition> rockLegacy = processor.legacyGetByGenre(targetGenre);
-
         printList("Жанр: ROCK (Stream)", rockStream);
         printVerification("Количество ROCK композиций (Legacy vs Stream)", rockStream.size() == rockLegacy.size());
         System.out.println();
     }
 
-    // -----------------------------------------------------------------------
-    // Тесты Сложных выборок
-    // -----------------------------------------------------------------------
     private static void testComplexQueries(CompositionListProcessor processor) {
         printSection("🧩 ТЕСТИРОВАНИЕ СЛОЖНЫХ ВЫБОРОК");
-
-        // Хронология по жанру
         List<Composition> rockChrono = processor.streamChronologicalByGenre(Genres.rock);
         printList("Rock композиции (Хронологически)", rockChrono);
-
-        // Диапазон дат
         LocalDate from = LocalDate.of(1980, 1, 1);
         LocalDate to = LocalDate.of(1990, 12, 31);
-
         List<Composition> rangeLegacy = processor.legacyGenreAndYearRange(Genres.pop, from, to);
         List<Composition> rangeStream = processor.streamGenreAndYearRange(Genres.pop, from, to);
-
         printList(String.format("Pop композиции (%d - %d)", from.getYear(), to.getYear()), rangeStream);
         printVerification("Сравнение диапазона дат (Legacy vs Stream)", rangeLegacy.size() == rangeStream.size());
         System.out.println();
     }
 
-    // -----------------------------------------------------------------------
-    // Вспомогательные методы для красивого вывода
-    // -----------------------------------------------------------------------
+    // =======================================================================
+    // 🔥 НОВЫЙ РАЗДЕЛ: Тестирование параметризации (Predicate & Comparator)
+    // =======================================================================
+    private static void testParameterization(CompositionListProcessor processor) {
+        printSection("⚙️ ТЕСТИРОВАНИЕ ПАРАМЕТРИЗАЦИИ (Predicate & Comparator)");
 
+        // -------------------------------------------------------------------
+        // 1. ФИЛЬТРАЦИЯ через Predicate: Лямбда vs Анонимный класс
+        // -------------------------------------------------------------------
+        printSubSection("1️⃣ Фильтрация: Predicate<T>");
+
+        // (б) Лямбда-выражение: композиции после 2000 года
+        System.out.println("  ▶ Лямбда: композиции после 2000 года");
+        List<Composition> after2000Lambda = processor.streamFilterByPredicate(
+                c -> c.getReleaseDate().getYear() > 2000
+        );
+        printList("Результат (Stream + Lambda)", after2000Lambda);
+
+        // (а) Анонимный класс: композиции после 2000 года
+        System.out.println("  ▶ Анонимный класс: композиции после 2000 года");
+        List<Composition> after2000Anonymous = processor.legacyFilterByPredicate(
+                new Predicate<Composition>() {
+                    @Override
+                    public boolean test(Composition c) {
+                        return c.getReleaseDate().getYear() > 2000;
+                    }
+                }
+        );
+        printList("Результат (Legacy + Anonymous)", after2000Anonymous);
+        printVerification("Lambda vs Anonymous (размер)",
+                after2000Lambda.size() == after2000Anonymous.size());
+
+        // -------------------------------------------------------------------
+        // 2. Комбинирование Predicate (and/or/negate)
+        // -------------------------------------------------------------------
+        printSubSection("2️⃣ Комбинация Predicate (and/or/negate)");
+
+        Predicate<Composition> isRock = c -> c.getGenre() == Genres.rock;
+        Predicate<Composition> isOld = c -> c.getReleaseDate().getYear() < 1990;
+
+        // Rock И старые (and)
+        List<Composition> oldRock = processor.streamFilterByPredicate(
+                isRock.and(isOld)
+        );
+        printList("Rock AND до 1990 года", oldRock);
+
+        // Rock ИЛИ Classic (or)
+        Predicate<Composition> isClassic = c -> c.getGenre() == Genres.classic;
+        List<Composition> rockOrClassic = processor.streamFilterByPredicate(
+                isRock.or(isClassic)
+        );
+        printList("Rock OR Classic", rockOrClassic);
+
+        // НЕ Pop (negate)
+        List<Composition> notPop = processor.streamFilterByPredicate(
+                c -> c.getGenre() != Genres.pop  // или: isPop.negate()
+        );
+        printList("НЕ Pop жанры", notPop);
+
+        // -------------------------------------------------------------------
+        // 3. СОРТИРОВКА через Comparator: Лямбда vs Анонимный класс
+        // -------------------------------------------------------------------
+        printSubSection("3️⃣ Сортировка: Comparator<T>");
+
+        // (б) Лямбда: по длине названия
+        System.out.println("  ▶ Лямбда: сортировка по длине названия");
+        List<Composition> sortByLengthLambda = processor.streamSortByComparator(
+                (c1, c2) -> Integer.compare(c1.getName().length(), c2.getName().length())
+        );
+        printList("По длине названия (Lambda)", sortByLengthLambda);
+
+        // (а) Анонимный класс: по длине названия
+        System.out.println("  ▶ Анонимный класс: сортировка по длине названия");
+        List<Composition> sortByLengthAnonymous = processor.legacySortByComparator(
+                new Comparator<Composition>() {
+                    @Override
+                    public int compare(Composition c1, Composition c2) {
+                        return Integer.compare(c1.getName().length(), c2.getName().length());
+                    }
+                }
+        );
+        printList("По длине названия (Anonymous)", sortByLengthAnonymous);
+        printVerification("Lambda vs Anonymous (сортировка)",
+                sortByLengthLambda.size() == sortByLengthAnonymous.size());
+
+        // -------------------------------------------------------------------
+        // 4. Метод-референс (Method Reference) — бонус
+        // -------------------------------------------------------------------
+        printSubSection("4️⃣ Бонус: Method Reference");
+
+        // Сортировка по дате через метод-референс
+        List<Composition> sortedByRef = processor.streamSortByComparator(
+                Comparator.comparing(Composition::getReleaseDate)
+        );
+        printList("Сортировка по дате (Method Reference)", sortedByRef);
+
+        // -------------------------------------------------------------------
+        // 5. Сравнение Stream vs Legacy с одинаковым Predicate
+        // -------------------------------------------------------------------
+        printSubSection("5️⃣ Сверка: Stream vs Legacy с одним Predicate");
+
+        Predicate<Composition> isEminem = c -> c.getAuthor().getName().equals("Eminem");
+
+        List<Composition> eminemStream = processor.streamFilterByPredicate(isEminem);
+        List<Composition> eminemLegacy = processor.legacyFilterByPredicate(isEminem);
+
+        printList("Eminem (Stream)", eminemStream);
+        printList("Eminem (Legacy)", eminemLegacy);
+        printVerification("Stream vs Legacy результат",
+                eminemStream.size() == eminemLegacy.size());
+
+        System.out.println();
+    }
+
+    // -----------------------------------------------------------------------
+    // Вспомогательные методы для вывода (оставляем без изменений)
+    // -----------------------------------------------------------------------
     private static void printHeader(String text) {
         System.out.println("\n╔════════════════════════════════════════════════════════════╗");
         System.out.println("║  " + String.format("%-55s", text) + "  ║");
@@ -186,6 +268,10 @@ public class Main {
         System.out.println("┌──────────────────────────────────────────────────────────────┐");
         System.out.println("│ " + title + "    │");
         System.out.println("└──────────────────────────────────────────────────────────────┘");
+    }
+
+    private static void printSubSection(String title) {
+        System.out.println("  ┌─ " + title + " ─────────────────────────────┐");
     }
 
     private static void printFooter(String text) {
@@ -222,7 +308,7 @@ public class Main {
 
     private static void printVerification(String checkName, boolean isSuccess) {
         String status = isSuccess ? "✅ OK" : "❌ FAIL";
-        String colorCode = isSuccess ? "\u001B[32m" : "\u001B[31m"; // Green or Red
+        String colorCode = isSuccess ? "\u001B[32m" : "\u001B[31m";
         String reset = "\u001B[0m";
         System.out.println("  🔎 " + checkName + ": " + colorCode + status + reset);
     }
