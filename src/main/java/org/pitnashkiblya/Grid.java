@@ -21,7 +21,7 @@ public class Grid {
     }
 
     private void init() {
-        BufferedImage[][] temp = ImageProcessor.getBase();
+        BufferedImage[][] temp = ImageProcessor.process();
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 area[y][x] = new Tag(x, y, temp[y][x]);
