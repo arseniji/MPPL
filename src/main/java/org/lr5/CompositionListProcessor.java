@@ -2,6 +2,7 @@ package org.lr5;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CompositionListProcessor {
@@ -18,6 +19,33 @@ public class CompositionListProcessor {
     public int getSize(){
         return enterList.size();
     }
+
+    public List<Composition> streamFilterByPredicate(Predicate<Composition> predicate) {
+        return enterList.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+    }
+
+    public List<Composition> legacyFilterByPredicate(Predicate<Composition> predicate) {
+        List<Composition> exitList = new ArrayList<>();
+        for(Composition c : enterList){
+            if (predicate.test(c)) exitList.add(c);
+        }
+        return exitList;
+    }
+
+    public List<Composition> streamSortByComparator(Comparator<Composition> comparator) {
+        return enterList.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+
+    public List<Composition> legacySortByComparator(Comparator<Composition> comparator){
+        List<Composition> exitList = new ArrayList<>(enterList);
+        exitList.sort(comparator);
+        return exitList;
+    }
+
 
     public Map<Genres, List<Composition>> legacyGroupByGenre(){
         Map<Genres, List<Composition>> map = new HashMap<>();
