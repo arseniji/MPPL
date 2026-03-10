@@ -21,7 +21,7 @@ public class Grid {
     }
 
     private void init() {
-        BufferedImage[][] temp = ImageProcessor.process();
+        BufferedImage[][] temp = ImageProcessor.getBase();
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 area[y][x] = new Tag(x, y, temp[y][x]);
@@ -56,7 +56,7 @@ public class Grid {
     }
 
     private void shuffle() {
-        int shuffleMoves = 8;
+        int shuffleMoves = 100;
 
         for (int i = 0; i < shuffleMoves; i++) {
             List<Tag> neighbors = new ArrayList<>(4);
