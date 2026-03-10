@@ -13,26 +13,28 @@ public class Parking {
         this.parkingQueue = new ArrayDeque<>();
     }
     public synchronized boolean tryEnter(Car car,long timeout){
-        long deadline = System.nanoTime() + timeout * 1000000;
+        long deadline = System.currentTimeMillis() + timeout;
         parkingQueue.add(car);
+        System.out.println("Машина " + car.getId() + " встала в очередь");
         while (true){
+            boolean isFirst = parkingQueue.peek() == car;
             int freeSlot = findFreeSlot();
-            if (freeSlot != -1){
+
+            if (isFirst && freeSlot != -1){
                 parkingSlots.set(freeSlot,car);
-                parkingQueue.remove(car);
+                parkingQueue.poll();
                 System.out.println("Машина " + car.getId() + " заняла место " + freeSlot);
+                getState();
                 return true;
             }
-            parkingQueue.add(car);
-            System.out.println("Машина " + car.getId() + " встала в очередь");
-            long remaining = deadline - System.nanoTime();
+
+            long remaining = deadline - System.currentTimeMillis();
             if (remaining <= 0){
-                System.out.println("Машина " + car.getId() + " не дождалась");
                 parkingQueue.remove(car);
                 return false;
             }
             try {
-                wait(remaining / 1_000_000, (int) (remaining % 1_000_000));
+                wait(remaining);
             } catch (InterruptedException e) {
                 parkingQueue.remove(car);
                 return false;
@@ -43,6 +45,7 @@ public class Parking {
         IntStream.range(0,parkingSlots.size()).filter(i -> parkingSlots.get(i) == car).findFirst().ifPresent(index ->{
             parkingSlots.set(index,null);
             System.out.println("Машина " + car.getId() + " освободила место №" + index);
+            getState();
             notifyAll();
         });
     }

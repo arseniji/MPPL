@@ -16,11 +16,10 @@ public class CarGenerator implements Runnable{
     @Override
     public void run(){
         for (int i = 0; i < simIter; i++){
-            parking.getState();
             Car car = new Car(parking);
             Main.executorPool.submit(car);
             try {
-                Thread.sleep(new Random().nextInt(1000) + 500);
+                Thread.sleep(new Random().nextInt(200) + 500);
             } catch (InterruptedException e) {
                 break;
             }

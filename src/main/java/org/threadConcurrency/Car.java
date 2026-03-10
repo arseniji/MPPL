@@ -21,7 +21,7 @@ public class Car implements Runnable{
     @Override
     public void run(){
         System.out.println("Машина " + id + " подъехала к парковке");
-        if (parking.tryEnter(this, 5000)) {
+        if (parking.tryEnter(this, 100)) {
             try {
                 Thread.sleep(random.nextInt(6000) + 2000);
             } catch (InterruptedException e) {}
